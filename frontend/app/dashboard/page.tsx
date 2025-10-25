@@ -1,8 +1,12 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Wallet, Gift, Users, ArrowUpRight, ChevronRight, X, Search } from 'lucide-react';
+import { Wallet, Gift, Users, ArrowUpRight, ChevronRight, X, Search, Phone, User, Copy, Check } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from 'wagmi';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Types
 interface DashboardCardProps {
@@ -235,6 +239,8 @@ const SearchReferralsModal: React.FC<{ onClose: () => void; onSelect: (code: str
 export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [copiedAddress, setCopiedAddress] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
   const [referrals, setReferrals] = useState<ReferralItemProps[]>(
     [
       { code: 'GEMINI50', platform: 'Gemini', uses: 24, reward: '50 Points' },
@@ -242,6 +248,24 @@ export default function DashboardPage() {
       { code: 'NEXO100', platform: 'Nexo', uses: 8, reward: '100 Points' },
     ]
   );
+
+  const { user, isAuthenticated } = useAuth();
+  const { address, isConnected } = useAccount();
+
+  const copyToClipboard = async (text: string, type: 'address' | 'phone') => {
+    try {
+      await navigator.clipboard.writeText(text);
+      if (type === 'address') {
+        setCopiedAddress(true);
+        setTimeout(() => setCopiedAddress(false), 2000);
+      } else {
+        setCopiedPhone(true);
+        setTimeout(() => setCopiedPhone(false), 2000);
+      }
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
 
   const handleNewReferral = (data: ReferralFormData) => {
     const platform = PLATFORMS.find(p => p.id === data.platform);
@@ -261,6 +285,95 @@ export default function DashboardPage() {
           Add Referral
         </button>
       </div>
+
+      {/* Wallet & User Info Section */}
+      {(isAuthenticated || isConnected) && (
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8"
+        >
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Wallet Info Card */}
+            {isConnected && address && (
+              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <Wallet className="h-5 w-5 text-blue-600" />
+                    Wallet Connected
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Wallet Address</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm bg-white px-3 py-1 rounded border flex-1 font-mono">
+                          {address.slice(0, 6)}...{address.slice(-4)}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(address, 'address')}
+                          className="h-8 w-8 p-0"
+                        >
+                          {copiedAddress ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      Connected to Celo Network
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* User Info Card */}
+            {isAuthenticated && user && (
+              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="flex items-center gap-2 text-lg">
+                    <User className="h-5 w-5 text-green-600" />
+                    User Profile
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Phone Number</p>
+                      <div className="flex items-center gap-2">
+                        <code className="text-sm bg-white px-3 py-1 rounded border flex-1 font-mono">
+                          {user.phoneE164}
+                        </code>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => copyToClipboard(user.phoneE164, 'phone')}
+                          className="h-8 w-8 p-0"
+                        >
+                          {copiedPhone ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 mb-1">Phone Hash</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded border font-mono block">
+                        {user.phoneHash?.slice(0, 10)}...
+                      </code>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm text-green-600">
+                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                      Registered in Database
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </motion.div>
+      )}
       
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         <DashboardCard title="Total Referrals" value={`${referrals.length}`} icon={Users} />
