@@ -1,0 +1,19 @@
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  phoneE164          String   @unique
+  phoneHash          String   @unique
+  pepper             String?
+  walletAddress      String
+  encryptedPrivKey   String   // AES-encrypted private key (never store raw)
+  dekPublicKey       String?  // optional: store DEK public
+  dekEncrypted       String?  // optional: store encrypted DEK if you want
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
