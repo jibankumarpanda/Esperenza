@@ -1,14 +1,13 @@
 {
   "_format": "hh-sol-cache-2",
   "files": {
-    "C:\\Users\\User\\OneDrive\\Desktop\\EcoPay\\EcoPay\\contracts\\PaymentContract.sol": {
-      "lastModificationDate": 1761283743332,
+    "D:\\hackathon projects\\Eco_pay\\contracts\\PaymentContract.sol": {
+      "lastModificationDate": 1761372386679,
       "contentHash": "7e11b726844f9a53be30754afabeea00",
       "sourceName": "contracts/PaymentContract.sol",
       "solcConfig": {
-        "version": "0.8.20",
+        "version": "0.8.18",
         "settings": {
-          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200
@@ -37,14 +36,13 @@
         "PaymentContract"
       ]
     },
-    "C:\\Users\\User\\OneDrive\\Desktop\\EcoPay\\EcoPay\\contracts\\PhoneMapping.sol": {
-      "lastModificationDate": 1761283755259,
+    "D:\\hackathon projects\\Eco_pay\\contracts\\PhoneMapping.sol": {
+      "lastModificationDate": 1761372386679,
       "contentHash": "d5d864f696f90d2168c60f25e24863dc",
       "sourceName": "contracts/PhoneMapping.sol",
       "solcConfig": {
-        "version": "0.8.20",
+        "version": "0.8.18",
         "settings": {
-          "evmVersion": "paris",
           "optimizer": {
             "enabled": false,
             "runs": 200

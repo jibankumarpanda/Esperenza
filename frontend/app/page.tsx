@@ -1,3 +1,5 @@
+
+import { Marquee3D } from "@/components/sections/Faq";
 import { Features } from "@/components/sections/Features";
 import { Hero } from "@/components/sections/Hero";
 import { Impact } from "@/components/sections/Impact";
@@ -10,6 +12,7 @@ export default function Home() {
         <Features />
       </div>
       <Impact />
+      <Marquee3D/>
     </main>
   );
 }
