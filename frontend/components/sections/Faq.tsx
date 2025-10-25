@@ -1,4 +1,4 @@
-/* eslint-disable @next/next/no-img-element */
+import Image from "next/image"
 import { cn } from "@/lib/utils"
 import { Marquee } from "../ui/marquee"
 
@@ -7,19 +7,19 @@ const reviews = [
     name: "Jack",
     username: "@jack",
     body: "I've never seen anything like this before. It's amazing. I love it.",
-    img: "https://avatar.vercel.sh/jack",
+    img: "https://ui-avatars.com/api/?name=Jack&background=3b82f6&color=fff&size=128",
   },
   {
     name: "Jill",
     username: "@jill",
     body: "I don't know what to say. I'm speechless. This is amazing.",
-    img: "https://avatar.vercel.sh/jill",
+    img: "https://ui-avatars.com/api/?name=Jill&background=8b5cf6&color=fff&size=128",
   },
   {
     name: "John",
     username: "@john",
     body: "I'm at a loss for words. This is amazing. I love it.",
-    img: "https://avatar.vercel.sh/john",
+    img: "https://ui-avatars.com/api/?name=John&background=10b981&color=fff&size=128",
   },
 ]
 
@@ -50,7 +50,14 @@ const ReviewCard = ({
       )}
     >
       <div className="flex flex-row items-center gap-2">
-        <img className="rounded-full" width="32" height="32" alt="" src={img} />
+        <Image 
+          className="rounded-full" 
+          width={32} 
+          height={32} 
+          alt={`${name} avatar`} 
+          src={img}
+          unoptimized
+        />
         <div className="flex flex-col">
           <figcaption className="text-sm font-medium dark:text-white">
             {name}
