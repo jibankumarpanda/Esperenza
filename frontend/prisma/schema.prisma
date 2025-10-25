@@ -1,4 +1,8 @@
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -9,11 +13,31 @@ model User {
   phoneE164          String   @unique
   phoneHash          String   @unique
   pepper             String?
-  walletAddress      String
+  walletAddress      String   @unique
   encryptedPrivKey   String   // AES-encrypted private key (never store raw)
   dekPublicKey       String?  // optional: store DEK public
   dekEncrypted       String?  // optional: store encrypted DEK if you want
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  
+  // Relations
+  transactions       Transaction[]
+}
+
+model Transaction {
+  id          Int      @id @default(autoincrement())
+  txHash      String   @unique
+  fromAddress String
+  toAddress   String
+  amount      String   // Store as string to avoid precision issues
+  donation    String   // 1% donation amount
+  userId      Int
+  blockNumber BigInt?
+  status      String   @default("pending") // pending, success, failed
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
 }
 
