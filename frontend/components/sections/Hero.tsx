@@ -1,166 +1,109 @@
 'use client';
+import React from 'react';
 import { motion } from 'framer-motion';
-import { Wallet, Sprout, Coins } from 'lucide-react';
+import { Wallet, Users, Gift } from 'lucide-react';
 
 const fadeInUp = {
   initial: { opacity: 0, y: 20 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6 }
+  animate: { opacity: 1, y: 0, transition: { duration: 0.6 } }
 };
 
-const floatingAnimation = {
-  initial: { y: 0 },
+const floatingPath = (delay = 0) => ({
+  initial: { y: 0, opacity: 0 },
   animate: {
-    y: [0, -10, 0],
+    y: [0, -8, 0],
+    opacity: [0, 1, 1],
     transition: {
+      delay,
       duration: 3,
       repeat: Infinity,
-      ease: "easeInOut"
+      ease: 'easeInOut'
     }
   }
-};
+});
 
-const IconCircle = ({  className = "" }) => (
+type OrbitIconProps = {
+  Icon: React.ComponentType<any>;
+  className?: string;
+  delay?: number;
+};
+const OrbitIcon = ({ Icon, className = '', delay = 0 }: OrbitIconProps) => (
   <motion.div
-    initial={{ scale: 0, opacity: 0 }}
-    animate={{ scale: 1, opacity: 1 }}
-    transition={{  duration: 0.5 }}
-    className={`absolute w-16 h-16 rounded-full flex items-center justify-center bg-gradient-to-br ${className}`}
-  >
-   
+    >
+    <Icon size={18} />
   </motion.div>
 );
 
 export const Hero = () => {
   return (
-    <section className="relative min-h-[90vh] flex items-center overflow-hidden bg-gradient-to-br from-[#EFFFFA] to-[#FAF9F6]">
-      {/* Decorative background elements */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute w-[500px] h-[500px] -top-48 -right-24 rounded-full bg-[#A8D5BA]/20 blur-3xl" />
-        <div className="absolute w-[300px] h-[300px] top-96 -left-24 rounded-full bg-[#FFD369]/10 blur-2xl" />
-      </div>
-
-      <div className="container mx-auto relative z-10">
+    <section className="relative min-h-[78vh] flex items-center bg-gradient-to-b from-white to-slate-50">
+      <div className="container mx-auto px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          <motion.div
-            initial="initial"
-            animate="animate"
-            variants={fadeInUp}
-            className="space-y-8"
-          >
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 }}
-              className="inline-block px-4 py-2 rounded-full bg-primary/10 text-primary font-medium"
-            >
-              🌱 Sustainable Finance Revolution
-            </motion.div>
+          <motion.div variants={fadeInUp} initial="initial" animate="animate" className="space-y-6">
+            <div className="inline-block px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-sm font-medium">
+              Referral Exchange • Goodies Marketplace
+            </div>
 
-            <h1 className="text-5xl md:text-6xl font-bold text-text">
-              Transform Your
-              <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent"> Transactions </span>
-              into Forest Growth
+            <h1 className="text-4xl md:text-5xl font-extrabold text-slate-900 leading-tight">
+              Find, Share, and Redeem Referral Codes
+              <span className="block text-indigo-600 mt-2 text-xl font-semibold">
+                Earn points. Unlock rewards. Build your reputation.
+              </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-text/80">
-              Join the eco-friendly financial movement. Every transaction plants trees, 
-              making your wallet a force for positive change.
+            <p className="text-lg text-slate-600 max-w-2xl">
+              A lightweight referral hub where granters list verified codes and seekers discover them. Each successful use
+              rewards both parties and powers the goodies marketplace.
             </p>
 
             <div className="flex flex-wrap gap-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="btn-primary bg-gradient-to-r from-primary to-[#7EB693]"
-              >
-                Start Your Green Journey
+              <motion.button whileHover={{ scale: 1.03 }} className="px-5 py-2 rounded-md bg-indigo-600 text-white font-medium">
+                Get Started
               </motion.button>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                className="btn-secondary border-primary/20"
-              >
-                Watch How It Works
+              <motion.button whileHover={{ scale: 1.03 }} className="px-5 py-2 rounded-md border border-slate-200 text-slate-700 bg-white">
+                Explore Marketplace
               </motion.button>
             </div>
 
-            <div className="flex items-center gap-6 pt-6">
-              <div className="flex -space-x-4">
-                {[...Array(4)].map((_, i) => (
-                  <div
-                    key={i}
-                    className="w-10 h-10 rounded-full border-2 border-white bg-primary/20"
-                  />
+            <div className="flex items-center gap-4 pt-6 text-sm text-slate-600">
+              <div className="flex -space-x-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="w-9 h-9 rounded-full border-2 border-white bg-indigo-50" />
                 ))}
               </div>
-              <p className="text-text/80">
-                <span className="font-bold text-text">5,000+</span> eco-conscious users
-              </p>
+              <div>
+                <div className="font-semibold text-slate-900">2,300+</div>
+                <div className="text-xs">active referral codes</div>
+              </div>
             </div>
           </motion.div>
 
-          <div className="relative h-[600px]">
-            {/* Central infographic element */}
+          <div className="relative h-64 md:h-80 lg:h-96 flex items-center justify-center">
             <motion.div
-              
-              initial="initial"
-              animate="animate"
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+              initial={{ scale: 0.98, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, delay: 0.1 }}
+              className="relative w-64 h-64 md:w-72 md:h-72 rounded-2xl bg-gradient-to-br from-white to-slate-50 border border-slate-100 shadow-lg"
             >
-              <div className="relative w-72 h-72">
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.3 }}
-                  className="absolute inset-0 rounded-full bg-gradient-to-br from-primary/20 to-primary/5"
-                />
-                
-                
-
-                {/* Central connecting lines with animation */}
-                <svg className="absolute inset-0 w-full h-full animate-spin-slow" viewBox="0 0 100 100">
-                  <circle
-                    cx="50"
-                    cy="50"
-                    r="45"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="0.5"
-                    className="text-primary/20"
-                    strokeDasharray="1,3"
-                  />
-                </svg>
+              <div className="absolute left-5 top-5 p-3 bg-white rounded-lg shadow-sm w-36">
+                <div className="text-xs text-slate-500">Active Code</div>
+                <div className="font-medium text-slate-900">GEMINI50</div>
+                <div className="text-xs text-slate-500">Used 12× today</div>
               </div>
-            </motion.div>
 
-            {/* Floating stats cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.5 }}
-              className="absolute bottom-12 right-0 bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg"
-            >
-              <div className="text-sm font-medium text-text">
-                Trees Planted This Week
-                <div className="text-2xl font-bold text-primary">
-                  +2,481 🌳
-                </div>
-              </div>
-            </motion.div>
+              <OrbitIcon Icon={Wallet} className="bg-indigo-600 -top-8 left-1/2 -translate-x-1/2" delay={0.2} />
+              <OrbitIcon Icon={Users} className="bg-amber-500 top-1/2 -right-6 -translate-y-1/2" delay={0.6} />
+              <OrbitIcon Icon={Gift} className="bg-sky-500 bottom-4 left-6" delay={1} />
 
-            <motion.div
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 1.7 }}
-              className="absolute top-12 right-12 bg-white/80 backdrop-blur-sm rounded-xl p-4 shadow-lg"
-            >
-              <div className="text-sm font-medium text-text">
-                Carbon Offset
-                <div className="text-2xl font-bold text-accent">
-                  12.5 tons 🌍
-                </div>
-              </div>
+              <motion.div
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.9 }}
+                className="absolute right-4 bottom-4 bg-white rounded-xl p-3 shadow-md w-44"
+              >
+                <div className="text-xs text-slate-500">Goodies Redeemed</div>
+                <div className="font-semibold text-slate-900">1,142</div>
+              </motion.div>
             </motion.div>
           </div>
         </div>
