@@ -13,6 +13,7 @@
     "prisma:studio": "prisma studio",
     "db:test": "node scripts/test-db.js",
     "db:setup": "node scripts/setup-database.js",
+    "db:test-referral": "node scripts/test-referral-db.js",
     "fix:prisma": "node scripts/fix-prisma-permissions.js"
   },
   "dependencies": {

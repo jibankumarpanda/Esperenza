@@ -1,12 +1,14 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Wallet, Gift, Users, ArrowUpRight, ChevronRight, X, Search, Phone, User, Copy, Check } from 'lucide-react';
+import { Wallet, Gift, Users, ArrowUpRight, ChevronRight, X, Search, Phone, User, Copy, Check, Menu } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAccount } from 'wagmi';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UserDataModal } from '@/components/dashboard/UserDataModal';
+import { ProgramCards } from '@/components/dashboard/ProgramCards';
 
 // Types
 interface DashboardCardProps {
@@ -18,15 +20,16 @@ interface DashboardCardProps {
 
 interface ReferralItemProps {
   code: string;
-  platform: string;
   uses: number;
   reward: string;
+  isActive?: boolean;
+  maxUsage?: number;
 }
 
 interface ReferralFormData {
-  platform: string;
   code: string;
-  description?: string;
+  reward?: string;
+  maxUsage?: number;
 }
 
 interface AvailableReferral {
@@ -80,15 +83,17 @@ const DashboardCard: React.FC<DashboardCardProps> = ({ title, value, icon: Icon,
   </div>
 );
 
-const ReferralItem: React.FC<ReferralItemProps> = ({ code, platform, uses, reward }) => (
+const ReferralItem: React.FC<ReferralItemProps> = ({ code, uses, reward, isActive = true, maxUsage }) => (
   <div className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-lg transition-colors">
     <div className="flex items-center gap-4">
-      <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-        <span className="font-semibold text-indigo-600">{platform[0]}</span>
+      <div className={`w-10 h-10 rounded-full ${isActive ? 'bg-indigo-100' : 'bg-gray-100'} flex items-center justify-center`}>
+        <span className={`font-semibold ${isActive ? 'text-indigo-600' : 'text-gray-400'}`}>{code[0] || 'R'}</span>
       </div>
       <div>
         <p className="font-medium text-slate-900">{code}</p>
-        <p className="text-sm text-slate-500">{platform}</p>
+        <p className="text-sm text-slate-500">
+          {isActive ? 'Active' : 'Inactive'} • {maxUsage ? `${maxUsage} max uses` : 'Unlimited'}
+        </p>
       </div>
     </div>
     <div className="flex items-center gap-6">
@@ -107,15 +112,24 @@ const ReferralItem: React.FC<ReferralItemProps> = ({ code, platform, uses, rewar
 
 const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFormData) => void }> = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState<ReferralFormData>({
-    platform: '',
     code: '',
-    description: '',
+    reward: '',
+    maxUsage: undefined,
   });
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(formData);
-    onClose();
+    setIsSubmitting(true);
+    
+    try {
+      await onSubmit(formData);
+      onClose();
+    } catch (error) {
+      console.error('Error submitting form:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -127,45 +141,50 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
         <h2 className="text-xl text-black font-semibold mb-4">Add New Referral</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Platform</label>
-            <select
-              className="w-full p-2 border rounded-lg"
-              value={formData.platform}
-              onChange={(e) => setFormData({ ...formData, platform: e.target.value })}
-              required
-            >
-              <option value="text-black" className='black'>Select Platform</option>
-              {PLATFORMS.map((platform) => (
-                <option className='text-black' key={platform.id} value={platform.id}>
-                  {platform.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm text-black font-medium text-black-700 mb-1">Referral Code</label>
+            <label className="block text-sm text-black font-medium mb-1">Referral Code</label>
             <input
               type="text"
               className="w-full p-2 border rounded-lg"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+              placeholder="Enter unique referral code"
               required
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Description (Optional)</label>
-            <textarea
+            <label className="block text-sm font-medium text-slate-700 mb-1">Reward (Optional)</label>
+            <input
+              type="text"
               className="w-full p-2 border rounded-lg"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              rows={3}
+              value={formData.reward}
+              onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
+              placeholder="e.g., 10 CELO bonus, 50 Points"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Max Usage (Optional)</label>
+            <input
+              type="number"
+              className="w-full p-2 border rounded-lg"
+              value={formData.maxUsage || ''}
+              onChange={(e) => setFormData({ ...formData, maxUsage: e.target.value ? parseInt(e.target.value) : undefined })}
+              placeholder="Leave empty for unlimited"
+              min="1"
             />
           </div>
           <button
             type="submit"
-            className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            disabled={isSubmitting}
+            className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Add Referral
+            {isSubmitting ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                Creating...
+              </div>
+            ) : (
+              'Add Referral'
+            )}
           </button>
         </form>
       </div>
@@ -239,18 +258,52 @@ const SearchReferralsModal: React.FC<{ onClose: () => void; onSelect: (code: str
 export default function DashboardPage() {
   const [showForm, setShowForm] = useState(false);
   const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showUserModal, setShowUserModal] = useState(false);
   const [copiedAddress, setCopiedAddress] = useState(false);
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [referrals, setReferrals] = useState<ReferralItemProps[]>(
     [
-      { code: 'GEMINI50', platform: 'Gemini', uses: 24, reward: '50 Points' },
-      { code: 'COMET25', platform: 'Comet', uses: 16, reward: '25 Points' },
-      { code: 'NEXO100', platform: 'Nexo', uses: 8, reward: '100 Points' },
+      { code: 'WELCOME50', uses: 24, reward: '50 Points', isActive: true, maxUsage: 100 },
+      { code: 'COMET25', uses: 16, reward: '25 Points', isActive: true, maxUsage: 50 },
+      { code: 'NEXO100', uses: 8, reward: '100 Points', isActive: true, maxUsage: undefined },
     ]
   );
 
   const { user, isAuthenticated } = useAuth();
   const { address, isConnected } = useAccount();
+
+  // Load referrals from database
+  const loadUserReferrals = async () => {
+    if (!user?.id) return;
+
+    try {
+      console.log('Loading user referrals from database...');
+      const response = await fetch(`/api/referrals/user?userId=${user.id}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Referrals loaded:', data.referrals);
+        setReferrals(data.referrals.map((ref: any) => ({
+          code: ref.code,
+          uses: ref.usageCount || 0,
+          reward: ref.reward || 'Standard reward',
+          isActive: ref.isActive !== false,
+          maxUsage: ref.maxUsage
+        })));
+      } else {
+        console.error('Failed to load referrals:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading referrals:', error);
+    }
+  };
+
+  // Load referrals when user is authenticated
+  useEffect(() => {
+    if (user?.id) {
+      loadUserReferrals();
+    }
+  }, [user?.id]);
 
   const copyToClipboard = async (text: string, type: 'address' | 'phone') => {
     try {
@@ -267,10 +320,61 @@ export default function DashboardPage() {
     }
   };
 
-  const handleNewReferral = (data: ReferralFormData) => {
-    const platform = PLATFORMS.find(p => p.id === data.platform);
-    if (platform) {
-      setReferrals([...referrals, { code: data.code, platform: platform.name, uses: 0, reward: platform.reward }]);
+  const handleNewReferral = async (data: ReferralFormData) => {
+    if (!user?.id) {
+      console.error('User not authenticated');
+      return;
+    }
+
+    try {
+      console.log('Creating referral in database...');
+      const response = await fetch('/api/referrals/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          code: data.code,
+          reward: data.reward || 'Standard reward',
+          maxUsage: data.maxUsage,
+          userId: user.id
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('Referral created successfully:', result.referral);
+        // Add to local state
+        setReferrals([...referrals, { 
+          code: result.referral.code, 
+          uses: result.referral.usageCount || 0, 
+          reward: result.referral.reward || 'Standard reward',
+          isActive: result.referral.isActive !== false,
+          maxUsage: result.referral.maxUsage
+        }]);
+      } else {
+        console.error('Failed to create referral:', result.error);
+        
+        // Check if it's a database schema issue
+        if (result.error.includes('Database schema not updated')) {
+          alert('Database needs to be updated. Please contact support or try again later.');
+        } else {
+          // Fallback: Store in localStorage temporarily
+          console.log('Storing referral in localStorage as fallback...');
+          const tempReferral = {
+            code: data.code,
+            platform: platform.name,
+            uses: 0,
+            reward: platform.reward,
+            temp: true // Mark as temporary
+          };
+          
+          setReferrals([...referrals, tempReferral]);
+          alert('Referral saved temporarily. Database will be updated soon.');
+        }
+      }
+    } catch (error) {
+      console.error('Error creating referral:', error);
+      alert('Error creating referral. Please try again.');
     }
   };
 
@@ -278,12 +382,25 @@ export default function DashboardPage() {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-White-900">Dashboard</h1>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-        >
-          Add Referral
-        </button>
+        <div className="flex items-center gap-3">
+          {/* User Data Modal Button */}
+          {(isAuthenticated || isConnected) && (
+            <Button
+              variant="outline"
+              onClick={() => setShowUserModal(true)}
+              className="flex items-center gap-2"
+            >
+              <User className="h-4 w-4" />
+              My Profile
+            </Button>
+          )}
+          <button
+            onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+          >
+            Add Referral
+          </button>
+        </div>
       </div>
 
       {/* Wallet & User Info Section */}
@@ -400,6 +517,12 @@ export default function DashboardPage() {
         </div>
       </div>
 
+      {/* Program Cards Section */}
+      <div className="mt-12">
+        <ProgramCards />
+      </div>
+
+      {/* Modals */}
       {showForm && <ReferralForm onClose={() => setShowForm(false)} onSubmit={handleNewReferral} />}
       {showSearchModal && (
         <SearchReferralsModal 
@@ -408,6 +531,12 @@ export default function DashboardPage() {
             setShowSearchModal(false);
             // Handle referral code selection
           }}
+        />
+      )}
+      {showUserModal && (
+        <UserDataModal 
+          isOpen={showUserModal} 
+          onClose={() => setShowUserModal(false)} 
         />
       )}
     </div>

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { contractService } from '@/lib/contractService';
-import prismaClient from '@/app/lib/prisma';
+import { getPrisma } from '@/app/lib/prisma';
 import { ethers } from 'ethers';
-
-const prisma = prismaClient;
 export async function POST(request: NextRequest) {
   try {
     console.log('📞 Phone registration API called');
@@ -25,6 +23,7 @@ export async function POST(request: NextRequest) {
 
     if (result.success) {
       console.log('✅ Blockchain registration successful, updating user in database...');
+      const prisma = getPrisma();
       // Update user in database
       try {
         await prisma.user.update({

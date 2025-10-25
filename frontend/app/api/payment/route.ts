@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { contractService } from '@/lib/contractService';
-import prisma from '@/app/lib/prisma';
+import { getPrisma } from '@/app/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,6 +10,7 @@ export async function POST(request: NextRequest) {
     const result = await contractService.sendPayment(receiver, amount);
 
     if (result.success) {
+      const prisma = getPrisma();
       // Store transaction in database
       await prisma.transaction.create({
         data: {

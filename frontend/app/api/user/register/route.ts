@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/app/lib/prisma';
+import { getPrisma } from '@/app/lib/prisma';
 import { ethers } from 'ethers';
 
 export async function POST(request: NextRequest) {
@@ -17,6 +17,8 @@ export async function POST(request: NextRequest) {
 
     // Hash the phone number
     const phoneHash = ethers.keccak256(ethers.toUtf8Bytes(phoneNumber));
+
+    const prisma = getPrisma();
 
     // Check if user already exists
     console.log('🔍 Checking for existing user...');
