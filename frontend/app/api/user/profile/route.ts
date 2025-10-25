@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import prisma from '@/app/lib/prisma';
+import { getPrisma } from '@/app/lib/prisma';
+export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
   try {
-    // Ensure Prisma is connected (helps surface connection errors early)
+    // Use lazy getter to avoid bundler evaluation issues. This runs in Node runtime.
+    const prisma = getPrisma();
     try {
       await prisma.$connect();
     } catch (connErr) {
@@ -23,9 +25,13 @@ export async function GET(request: NextRequest) {
     let user;
     
     if (walletAddress) {
-      // Use findFirst for walletAddress since it might not be unique yet
+      // Normalize and log the incoming wallet address for debugging
+      const wa = walletAddress.trim();
+      console.log('Querying user by walletAddress:', wa);
+
+      // Use case-insensitive match to avoid checksum/lowercase mismatches
       user = await prisma.user.findFirst({
-        where: { walletAddress },
+        where: { walletAddress: { equals: wa, mode: 'insensitive' } },
         include: {
           transactions: {
             orderBy: { createdAt: 'desc' },
@@ -33,6 +39,39 @@ export async function GET(request: NextRequest) {
           }
         }
       });
+
+      // If user not found, create a new user record for this wallet
+      if (!user) {
+        console.log('User not found, creating new user for wallet:', wa);
+        try {
+          // Generate temporary placeholders for required fields
+          const tempPhoneE164 = `temp_${Date.now()}@wallet.eco`;
+          const tempPhoneHash = `0x${Math.random().toString(16).slice(2, 66).padEnd(64, '0')}`;
+          const tempPrivKey = `temp_encrypted_${Date.now()}`;
+          
+          user = await prisma.user.create({
+            data: {
+              walletAddress: wa,
+              phoneE164: tempPhoneE164,
+              phoneHash: tempPhoneHash,
+              encryptedPrivKey: tempPrivKey,
+              // Mark this as a wallet-only registration (can be updated later)
+            },
+            include: {
+              transactions: {
+                orderBy: { createdAt: 'desc' },
+                take: 10
+              }
+            }
+          });
+          console.log('Created new user with ID:', user.id);
+        } catch (createError) {
+          console.error('Error creating user:', createError);
+          return NextResponse.json({ 
+            error: 'Failed to create user record' 
+          }, { status: 500 });
+        }
+      }
     } else if (phoneNumber) {
       // Use findUnique for phoneE164 since it's unique
       user = await prisma.user.findUnique({

@@ -13,6 +13,7 @@ import { Phone, Wallet, Shield, CheckCircle, AlertCircle, Sparkles, Globe, Zap, 
 import { motion, AnimatePresence } from 'framer-motion';
 import { ethers } from 'ethers';
 import { parsePhoneNumber } from 'libphonenumber-js';
+import './LoginModal.css';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -28,7 +29,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [isPhoneValid, setIsPhoneValid] = useState(false);
   
   const { address, isConnected } = useAccount();
-  const { login, registerPhone, isLoading } = useAuth();
+  const { login, registerPhone, isLoading: authIsLoading } = useAuth();
+  const [isLoading, setIsLoading] = useState(false);
 
   // Validate phone number
   const validatePhone = (phone: string) => {
@@ -58,10 +60,22 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   // Handle wallet connection
   useEffect(() => {
+    console.log('Wallet connection effect:', { step, isConnected, address, isPhoneValid });
     if (step === 'wallet' && isConnected && address && isPhoneValid) {
+      console.log('Triggering wallet connect handler');
       handleWalletConnect();
     }
   }, [isConnected, address, step, isPhoneValid]);
+
+  // Debug wallet connection status
+  useEffect(() => {
+    console.log('Wallet status changed:', { isConnected, address, step });
+  }, [isConnected, address, step]);
+
+  // Debug ConnectButton click
+  const handleConnectClick = () => {
+    console.log('Connect button clicked');
+  };
 
   const handlePhoneSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -86,36 +100,50 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const handleWalletConnect = () => {
+    console.log('handleWalletConnect called:', { isConnected, address, isPhoneValid, userData });
     if (isConnected && address && isPhoneValid) {
+      console.log('Proceeding with user registration');
       handleUserRegistration();
+    } else {
+      console.log('Cannot proceed:', { isConnected, address, isPhoneValid });
+      setError('Please ensure wallet is connected and phone number is valid');
     }
   };
 
   const handleUserRegistration = async () => {
-    if (!userData || !address || !isPhoneValid) return;
+    console.log('handleUserRegistration called:', { userData, address, isPhoneValid });
+    if (!userData || !address || !isPhoneValid) {
+      console.log('Missing required data:', { userData, address, isPhoneValid });
+      setError('Missing required data for registration');
+      return;
+    }
 
     setError(null);
     setSuccess(null);
     setIsLoading(true);
 
     try {
-      // Register phone number on blockchain first
-      const blockchainResult = await registerPhone(userData.phoneNumber);
-      
-      if (blockchainResult.success) {
-        // Now register user in database
-        const dbResponse = await fetch('/api/user/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            phoneNumber: userData.phoneNumber,
-            walletAddress: address
-          })
-        });
+      console.log('Starting database registration first...');
+      // Register user in database first
+      const dbResponse = await fetch('/api/user/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          phoneNumber: userData.phoneNumber,
+          walletAddress: address
+        })
+      });
 
-        const dbData = await dbResponse.json();
+      const dbData = await dbResponse.json();
+      console.log('Database registration result:', dbData);
+      
+      if (dbData.success) {
+        console.log('Database registration successful, now registering on blockchain...');
+        // Now register phone number on blockchain
+        const blockchainResult = await registerPhone(userData.phoneNumber);
+        console.log('Blockchain result:', blockchainResult);
         
-        if (dbData.success) {
+        if (blockchainResult.success) {
           // Create user object with database ID
           const newUser = {
             id: dbData.user.id,
@@ -125,6 +153,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             isRegistered: true
           };
 
+          console.log('User created successfully:', newUser);
           // Store in local storage
           localStorage.setItem('ecopay_user', JSON.stringify(newUser));
           
@@ -137,12 +166,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
             window.location.href = '/dashboard';
           }, 2000);
         } else {
-          setError(dbData.error || 'Failed to store user in database');
+          console.error('Blockchain registration failed:', blockchainResult.error);
+          setError(blockchainResult.error || 'Blockchain registration failed');
         }
       } else {
-        setError(blockchainResult.error || 'Blockchain registration failed');
+        console.error('Database registration failed:', dbData.error);
+        setError(dbData.error || 'Failed to store user in database');
       }
     } catch (error: any) {
+      console.error('Registration error:', error);
       setError(error.message || 'An error occurred during registration');
     } finally {
       setIsLoading(false);
@@ -174,7 +206,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
-          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl"
+          className="w-full max-w-lg bg-white rounded-2xl shadow-2xl login-modal"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Header */}
@@ -280,21 +312,74 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <motion.div 
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="flex items-center gap-3 p-4 bg-success/10 border border-success/20 rounded-lg"
+                    className="space-y-4"
                   >
-                    <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
-                    <div className="flex-1">
-                      <p className="font-medium text-success">Wallet Connected</p>
-                      <p className="text-sm text-slate-700">
-                        {address?.slice(0, 6)}...{address?.slice(-4)}
-                      </p>
+                    <div className="flex items-center gap-3 p-4 bg-success/10 border border-success/20 rounded-lg">
+                      <CheckCircle className="h-5 w-5 text-success flex-shrink-0" />
+                      <div className="flex-1">
+                        <p className="font-medium text-success">Wallet Connected</p>
+                        <p className="text-sm text-slate-700">
+                          {address?.slice(0, 6)}...{address?.slice(-4)}
+                        </p>
+                      </div>
                     </div>
+                    
+                    {isPhoneValid && (
+                      <Button 
+                        onClick={handleWalletConnect}
+                        className="w-full"
+                        disabled={isLoading || authIsLoading}
+                      >
+                        {isLoading || authIsLoading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                            Registering...
+                          </div>
+                        ) : (
+                          'Complete Registration'
+                        )}
+                      </Button>
+                    )}
                   </motion.div>
                 ) : (
                   <div className="space-y-4">
+                    <p className="text-sm text-slate-600 text-center">
+                      Click the button below to connect your wallet
+                    </p>
                     <div className="flex justify-center">
-                      <ConnectButton />
+                      <div className="w-full max-w-xs">
+                        <div className="rainbowkit-connect-button-wrapper">
+                          <ConnectButton 
+                            chainStatus="icon"
+                            showBalance={false}
+                            accountStatus={{
+                              smallScreen: 'avatar',
+                              largeScreen: 'full',
+                            }}
+                            label="Connect Wallet"
+                            modalSize="compact"
+                          />
+                        </div>
+                      </div>
                     </div>
+                    
+                    {/* Fallback instructions */}
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs text-blue-700 text-center mb-2">
+                        <strong>Having trouble?</strong> Make sure you have MetaMask, WalletConnect, or another Celo-compatible wallet installed.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="w-full text-xs"
+                        onClick={() => window.location.reload()}
+                      >
+                        Refresh Page
+                      </Button>
+                    </div>
+                    <p className="text-xs text-slate-500 text-center">
+                      Make sure you have a Celo-compatible wallet installed
+                    </p>
                   </div>
                 )}
               </motion.div>
@@ -328,7 +413,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   </div>
                 )}
 
-                {isLoading && (
+                {(isLoading || authIsLoading) && (
                   <div className="flex items-center justify-center gap-2 p-4">
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-primary border-t-transparent" />
                     <span className="text-sm text-slate-700">Finalizing registration...</span>

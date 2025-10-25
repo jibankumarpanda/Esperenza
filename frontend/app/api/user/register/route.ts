@@ -4,9 +4,12 @@ import { ethers } from 'ethers';
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔵 User registration API called');
     const { phoneNumber, walletAddress } = await request.json();
+    console.log('📱 Registration data:', { phoneNumber, walletAddress });
 
     if (!phoneNumber || !walletAddress) {
+      console.log('❌ Missing required fields');
       return NextResponse.json({ 
         error: 'Phone number and wallet address are required' 
       }, { status: 400 });
@@ -16,6 +19,7 @@ export async function POST(request: NextRequest) {
     const phoneHash = ethers.keccak256(ethers.toUtf8Bytes(phoneNumber));
 
     // Check if user already exists
+    console.log('🔍 Checking for existing user...');
     const existingUser = await prisma.user.findFirst({
       where: {
         OR: [
@@ -27,12 +31,14 @@ export async function POST(request: NextRequest) {
     });
 
     if (existingUser) {
+      console.log('⚠️ User already exists:', existingUser);
       return NextResponse.json({ 
         error: 'User already exists with this phone number or wallet address' 
       }, { status: 409 });
     }
 
     // Create new user in database
+    console.log('✅ Creating new user in database...');
     const user = await prisma.user.create({
       data: {
         phoneE164: phoneNumber,
@@ -45,6 +51,7 @@ export async function POST(request: NextRequest) {
       }
     });
 
+    console.log('🎉 User created successfully:', user);
     return NextResponse.json({
       success: true,
       user: {
