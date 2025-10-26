@@ -9,6 +9,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserDataModal } from '@/components/dashboard/UserDataModal';
 import { ProgramCards } from '@/components/dashboard/ProgramCards';
+import LiquidEther from '@/components/ui/LiquidEther';
+import Footer from '@/components/layout/Footer';
+import Navigation from '@/components/layout/Navigation';
 
 // Types
 interface DashboardCardProps {
@@ -19,6 +22,7 @@ interface DashboardCardProps {
 }
 
 interface ReferralItemProps {
+  name: string;
   code: string;
   uses: number;
   reward: string;
@@ -27,9 +31,12 @@ interface ReferralItemProps {
 }
 
 interface ReferralFormData {
+  name: string;
   code: string;
   reward?: string;
   maxUsage?: number;
+  category?: string;
+  description?: string;
 }
 
 interface AvailableReferral {
@@ -70,51 +77,56 @@ const PLATFORMS = [
 ];
 
 const DashboardCard: React.FC<DashboardCardProps> = ({ title, value, icon: Icon, className = '' }) => (
-  <div className={`p-6 rounded-xl bg-white shadow-sm border border-slate-100 ${className}`}>
+  <div className={`group relative p-6 rounded-xl shadow-lg hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 hover:scale-105 ${className}`}>
     <div className="flex items-center justify-between">
       <div>
-        <p className="text-sm text-slate-500">{title}</p>
-        <h3 className="text-2xl font-bold text-slate-900 mt-1">{value}</h3>
+        <p className="text-sm text-white/80 group-hover:text-white transition-colors duration-300 drop-shadow-lg">{title}</p>
+        <h3 className="text-2xl font-bold text-white mt-1 group-hover:text-white transition-colors duration-300 drop-shadow-lg">{value}</h3>
       </div>
-      <div className="p-3 rounded-lg bg-indigo-50">
-        <Icon className="w-5 h-5 text-indigo-600" />
+      <div className="p-3 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20 group-hover:bg-white/20 group-hover:shadow-lg group-hover:shadow-purple-300/50 transition-all duration-300">
+        <Icon className="w-5 h-5 text-white group-hover:text-purple-200 transition-colors duration-300 drop-shadow-lg" />
       </div>
     </div>
+    {/* Glow effect */}
+    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-pink-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
   </div>
 );
 
-const ReferralItem: React.FC<ReferralItemProps> = ({ code, uses, reward, isActive = true, maxUsage }) => (
-  <div className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-lg transition-colors">
+const ReferralItem: React.FC<ReferralItemProps> = ({ name, code, uses, reward, isActive = true, maxUsage }) => (
+  <div className="group flex items-center justify-between p-4 hover:bg-white/10 hover:backdrop-blur-md rounded-lg transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20 hover:border hover:border-white/20">
     <div className="flex items-center gap-4">
-      <div className={`w-10 h-10 rounded-full ${isActive ? 'bg-indigo-100' : 'bg-gray-100'} flex items-center justify-center`}>
-        <span className={`font-semibold ${isActive ? 'text-indigo-600' : 'text-gray-400'}`}>{code[0] || 'R'}</span>
+      <div className={`w-10 h-10 rounded-full ${isActive ? 'bg-white/20 backdrop-blur-sm border border-white/30 group-hover:shadow-lg group-hover:shadow-purple-300/50 group-hover:bg-white/30' : 'bg-gray-500/20 border border-gray-400/30'} flex items-center justify-center transition-all duration-300`}>
+        <span className={`font-semibold ${isActive ? 'text-white drop-shadow-lg group-hover:text-purple-200' : 'text-gray-300'} transition-colors duration-300`}>{code[0] || 'R'}</span>
       </div>
-      <div>
-        <p className="font-medium text-slate-900">{code}</p>
-        <p className="text-sm text-slate-500">
-          {isActive ? 'Active' : 'Inactive'} • {maxUsage ? `${maxUsage} max uses` : 'Unlimited'}
-        </p>
-      </div>
+        <div>
+          <p className="font-medium text-white group-hover:text-white transition-colors duration-300 drop-shadow-lg">{name}</p>
+          <p className="text-sm text-white/70 group-hover:text-white/80 transition-colors duration-300 drop-shadow-lg">
+            {code} • {isActive ? 'Active' : 'Inactive'} • {maxUsage ? `${maxUsage} max uses` : 'Unlimited'}
+          </p>
+        </div>
     </div>
     <div className="flex items-center gap-6">
       <div className="text-right">
-        <p className="text-sm text-slate-500">Uses</p>
-        <p className="font-medium text-slate-900">{uses}</p>
+        <p className="text-sm text-white/60 group-hover:text-white/80 transition-colors duration-300 drop-shadow-lg">Uses</p>
+        <p className="font-medium text-white group-hover:text-white transition-colors duration-300 drop-shadow-lg">{uses}</p>
       </div>
       <div className="text-right">
-        <p className="text-sm text-slate-500">Reward</p>
-        <p className="font-medium text-slate-900">{reward}</p>
+        <p className="text-sm text-white/60 group-hover:text-white/80 transition-colors duration-300 drop-shadow-lg">Reward</p>
+        <p className="font-medium text-white group-hover:text-white transition-colors duration-300 drop-shadow-lg">{reward}</p>
       </div>
-      <ChevronRight className="w-5 h-5 text-slate-400" />
+      <ChevronRight className="w-5 h-5 text-white/50 group-hover:text-purple-300 transition-colors duration-300 drop-shadow-lg" />
     </div>
   </div>
 );
 
 const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFormData) => void }> = ({ onClose, onSubmit }) => {
   const [formData, setFormData] = useState<ReferralFormData>({
+    name: '',
     code: '',
     reward: '',
     maxUsage: undefined,
+    category: 'general',
+    description: '',
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -124,7 +136,7 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
     
     try {
       await onSubmit(formData);
-      onClose();
+    onClose();
     } catch (error) {
       console.error('Error submitting form:', error);
     } finally {
@@ -134,17 +146,28 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+      <div className="bg-white/95 backdrop-blur-md rounded-xl p-6 w-full max-w-md relative">
         <button onClick={onClose} className="absolute right-4 top-4">
           <X className="w-5 h-5 text-slate-400" />
         </button>
         <h2 className="text-xl text-black font-semibold mb-4">Add New Referral</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
+            <label className="block text-sm text-black font-medium mb-1">Service Name</label>
+            <input
+              type="text"
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
+              value={formData.name}
+              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              placeholder="e.g., Perplexity, Comet, Claude, Gemini"
+              required
+            />
+          </div>
+          <div>
             <label className="block text-sm text-black font-medium mb-1">Referral Code</label>
             <input
               type="text"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
               value={formData.code}
               onChange={(e) => setFormData({ ...formData, code: e.target.value })}
               placeholder="Enter unique referral code"
@@ -155,7 +178,7 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
             <label className="block text-sm font-medium text-slate-700 mb-1">Reward (Optional)</label>
             <input
               type="text"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
               value={formData.reward}
               onChange={(e) => setFormData({ ...formData, reward: e.target.value })}
               placeholder="e.g., 10 CELO bonus, 50 Points"
@@ -165,17 +188,41 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
             <label className="block text-sm font-medium text-slate-700 mb-1">Max Usage (Optional)</label>
             <input
               type="number"
-              className="w-full p-2 border rounded-lg"
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
               value={formData.maxUsage || ''}
               onChange={(e) => setFormData({ ...formData, maxUsage: e.target.value ? parseInt(e.target.value) : undefined })}
               placeholder="Leave empty for unlimited"
               min="1"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Category</label>
+            <select
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm text-black focus:bg-white/90 transition-all duration-300"
+              value={formData.category}
+              onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+            >
+              <option value="general">General</option>
+              <option value="crypto">Crypto</option>
+              <option value="ai">AI Tools</option>
+              <option value="finance">Finance</option>
+              <option value="education">Education</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Description (Optional)</label>
+            <textarea
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              placeholder="Describe your referral code..."
+              rows={3}
+            />
+          </div>
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 backdrop-blur-sm text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? (
               <div className="flex items-center justify-center gap-2">
@@ -194,60 +241,181 @@ const ReferralForm: React.FC<{ onClose: () => void; onSubmit: (data: ReferralFor
 
 const SearchReferralsModal: React.FC<{ onClose: () => void; onSelect: (code: string) => void }> = ({ onClose, onSelect }) => {
   const [isSearching, setIsSearching] = useState(true);
-  const [availableReferrals, setAvailableReferrals] = useState<AvailableReferral[]>([]);
+  const [availableReferrals, setAvailableReferrals] = useState<any[]>([]);
+  const [selectedReferral, setSelectedReferral] = useState<any>(null);
+  const [isSelecting, setIsSelecting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [category, setCategory] = useState('all');
+  const { user } = useAuth();
+
+  const loadAvailableReferrals = async () => {
+    try {
+      setIsSearching(true);
+      const params = new URLSearchParams();
+      if (searchTerm) params.append('search', searchTerm);
+      if (category !== 'all') params.append('category', category);
+      
+      const response = await fetch(`/api/referrals/available?${params}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAvailableReferrals(data.referrals);
+      } else {
+        console.error('Failed to load referrals:', data.error);
+      }
+    } catch (error) {
+      console.error('Error loading referrals:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   useEffect(() => {
-    // Simulate API call with setTimeout
-    const timer = setTimeout(() => {
-      setIsSearching(false);
-      setAvailableReferrals([
-        { id: '1', platform: 'ChatGPT Plus', code: 'CHAT2024', owner: 'Alex M.', rating: 4.8, usesLeft: 5 },
-        { id: '2', platform: 'Gemini', code: 'GEM50NEW', owner: 'Sarah K.', rating: 4.9, usesLeft: 3 },
-        { id: '3', platform: 'Claude AI', code: 'CLAUDE25', owner: 'John D.', rating: 4.7, usesLeft: 8 },
-        { id: '4', platform: 'Comet', code: 'COMET2024', owner: 'Maria R.', rating: 4.6, usesLeft: 4 },
-      ]);
-    }, 5000);
+    loadAvailableReferrals();
+  }, [searchTerm, category]);
 
-    return () => clearTimeout(timer);
-  }, []);
+  const handleSelectReferral = async (referral: any) => {
+    if (!user?.id) {
+      alert('Please log in to select a referral');
+      return;
+    }
+
+    setIsSelecting(true);
+    try {
+      const response = await fetch('/api/referrals/select', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referralId: referral.id,
+          userId: user.id
+        })
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        setSelectedReferral({
+          ...referral,
+          provider: data.provider,
+          pointsAwarded: data.pointsAwarded
+        });
+        alert(`Referral selected! Provider details revealed and ${data.pointsAwarded} points awarded to them.`);
+      } else {
+        alert(`Failed to select referral: ${data.error}`);
+      }
+    } catch (error) {
+      console.error('Error selecting referral:', error);
+      alert('Error selecting referral. Please try again.');
+    } finally {
+      setIsSelecting(false);
+    }
+  };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-md relative">
+    <div className="fixed inset-0 pb-40 bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white/95 backdrop-blur-md rounded-xl p-6 w-full max-w-2xl relative max-h-[80vh] overflow-y-auto">
         <button onClick={onClose} className="absolute right-4 top-4">
           <X className="w-5 h-5 text-slate-400" />
         </button>
-        <h2 className="text-xl text-black font-semibold mb-4">Available Referrals</h2>
+        <h2 className="text-xl text-black font-semibold mb-4">Discover Referrals</h2>
+        
+        {/* Search and Filter */}
+        <div className="mb-6 space-y-4">
+          <div>
+            <input
+              type="text"
+              placeholder="Search referrals..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm placeholder-black/70 text-black focus:bg-white/90 transition-all duration-300"
+            />
+          </div>
+          <div>
+            <select
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              className="w-full p-2 border rounded-lg bg-white/80 backdrop-blur-sm text-black focus:bg-white/90 transition-all duration-300"
+            >
+              <option value="all">All Categories</option>
+              <option value="crypto">Crypto</option>
+              <option value="ai">AI Tools</option>
+              <option value="finance">Finance</option>
+              <option value="education">Education</option>
+              <option value="general">General</option>
+            </select>
+          </div>
+        </div>
         
         {isSearching ? (
-          <div className="py-12 flex flex-col items-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600 mb-4"></div>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
             <p className="text-slate-600">Searching for available referrals...</p>
           </div>
         ) : (
           <div className="space-y-4">
-            {availableReferrals.map((referral) => (
-              <div 
-                key={referral.id} 
-                className="p-4 border rounded-lg hover:border-indigo-200 transition-colors cursor-pointer"
-                onClick={() => onSelect(referral.code)}
-              >
-                <div className="flex justify-between items-start mb-2">
-                  <div>
-                    <h3 className="font-medium text-slate-900">{referral.platform}</h3>
-                    <p className="text-sm text-slate-500">By {referral.owner}</p>
-                  </div>
-                  <div className="flex items-center gap-1 text-amber-500">
-                    <span>★</span>
-                    <span className="text-sm">{referral.rating}</span>
-                  </div>
-                </div>
-                <div className="flex justify-between items-center mt-2">
-                  <code className="text-sm bg-slate-100 px-2 py-1 rounded">{referral.code}</code>
-                  <span className="text-sm text-slate-500">{referral.usesLeft} uses left</span>
-                </div>
+            {availableReferrals.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-slate-600">No referrals found matching your criteria</p>
               </div>
-            ))}
+            ) : (
+              availableReferrals.map((referral) => (
+                <div key={referral.id} className="group p-4 border border-white/30 rounded-lg hover:bg-white/30 hover:border-white/50 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300">
+                  <div className="flex justify-between items-start">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h3 className="font-medium text-slate-900 group-hover:text-black transition-colors duration-300">
+                          {referral.name} - {referral.code}
+                        </h3>
+                        <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                          {referral.category || 'general'}
+                        </span>
+                        {referral.isAvailable && (
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                            Available
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm text-slate-600 group-hover:text-slate-700 transition-colors duration-300">
+                        {referral.reward || 'Standard reward'}
+                      </p>
+                      {referral.description && (
+                        <p className="text-xs text-slate-500 mt-1">
+                          {referral.description}
+                        </p>
+                      )}
+                      <div className="flex items-center gap-4 mt-2 text-xs text-slate-500">
+                        <span>Used: {referral.usageCount}</span>
+                        {referral.maxUsage && (
+                          <span>Max: {referral.maxUsage}</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <button
+                        onClick={() => handleSelectReferral(referral)}
+                        disabled={!referral.isAvailable || isSelecting}
+                        className="px-4 py-2 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 backdrop-blur-sm text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 border border-white/20 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isSelecting ? 'Selecting...' : 'Select'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {/* Selected Referral Details */}
+        {selectedReferral && (
+          <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+            <h3 className="font-semibold text-green-800 mb-2">Referral Selected!</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>Code:</strong> {selectedReferral.code}</p>
+              <p><strong>Reward:</strong> {selectedReferral.reward}</p>
+              <p><strong>Provider:</strong> {selectedReferral.provider?.phoneE164}</p>
+              <p><strong>Points Awarded:</strong> {selectedReferral.pointsAwarded}</p>
+            </div>
           </div>
         )}
       </div>
@@ -263,9 +431,9 @@ export default function DashboardPage() {
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [referrals, setReferrals] = useState<ReferralItemProps[]>(
     [
-      { code: 'WELCOME50', uses: 24, reward: '50 Points', isActive: true, maxUsage: 100 },
-      { code: 'COMET25', uses: 16, reward: '25 Points', isActive: true, maxUsage: 50 },
-      { code: 'NEXO100', uses: 8, reward: '100 Points', isActive: true, maxUsage: undefined },
+      { name: 'Welcome Offer', code: 'WELCOME50', uses: 24, reward: '50 Points', isActive: true, maxUsage: 100 },
+      { name: 'Comet Launch', code: 'COMET25', uses: 16, reward: '25 Points', isActive: true, maxUsage: 50 },
+      { name: 'Nexo Bonus', code: 'NEXO100', uses: 8, reward: '100 Points', isActive: true },
     ]
   );
 
@@ -283,13 +451,14 @@ export default function DashboardPage() {
       
       if (data.success) {
         console.log('Referrals loaded:', data.referrals);
-        setReferrals(data.referrals.map((ref: any) => ({
-          code: ref.code,
-          uses: ref.usageCount || 0,
-          reward: ref.reward || 'Standard reward',
-          isActive: ref.isActive !== false,
-          maxUsage: ref.maxUsage
-        })));
+            setReferrals(data.referrals.map((ref: any) => ({
+              name: ref.name || 'Unknown Service',
+              code: ref.code,
+              uses: ref.usageCount || 0,
+              reward: ref.reward || 'Standard reward',
+              isActive: ref.isActive !== false,
+              maxUsage: ref.maxUsage
+            })));
       } else {
         console.error('Failed to load referrals:', data.error);
       }
@@ -332,9 +501,12 @@ export default function DashboardPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          name: data.name,
           code: data.code,
           reward: data.reward || 'Standard reward',
           maxUsage: data.maxUsage,
+          category: data.category || 'general',
+          description: data.description || '',
           userId: user.id
         })
       });
@@ -343,14 +515,15 @@ export default function DashboardPage() {
       
       if (result.success) {
         console.log('Referral created successfully:', result.referral);
-        // Add to local state
-        setReferrals([...referrals, { 
-          code: result.referral.code, 
-          uses: result.referral.usageCount || 0, 
-          reward: result.referral.reward || 'Standard reward',
-          isActive: result.referral.isActive !== false,
-          maxUsage: result.referral.maxUsage
-        }]);
+            // Add to local state
+            setReferrals([...referrals, { 
+              name: data.name,
+              code: result.referral.code, 
+              uses: result.referral.usageCount || 0, 
+              reward: result.referral.reward || 'Standard reward',
+              isActive: result.referral.isActive !== false,
+              maxUsage: result.referral.maxUsage
+            }]);
       } else {
         console.error('Failed to create referral:', result.error);
         
@@ -360,13 +533,13 @@ export default function DashboardPage() {
         } else {
           // Fallback: Store in localStorage temporarily
           console.log('Storing referral in localStorage as fallback...');
-          const tempReferral = {
-            code: data.code,
-            platform: platform.name,
-            uses: 0,
-            reward: platform.reward,
-            temp: true // Mark as temporary
-          };
+              const tempReferral = {
+                name: data.name,
+                code: data.code,
+                uses: 0,
+                reward: data.reward || 'Standard reward',
+                temp: true // Mark as temporary
+              };
           
           setReferrals([...referrals, tempReferral]);
           alert('Referral saved temporarily. Database will be updated soon.');
@@ -379,9 +552,38 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="p-6">
+    <div className="relative min-h-screen">
+      {/* Animated Liquid Background */}
+      <div className="fixed inset-0 z-0">
+        <LiquidEther
+          mouseForce={20}
+          cursorSize={100}
+          isViscous={false}
+          viscous={30}
+          iterationsViscous={32}
+          iterationsPoisson={32}
+          dt={0.014}
+          BFECC={true}
+          resolution={0.5}
+          isBounce={false}
+          colors={['#5227FF', '#FF9FFC', '#B19EEF']}
+          autoDemo={true}
+          autoSpeed={0.5}
+          autoIntensity={2.2}
+          takeoverDuration={0.25}
+          autoResumeDelay={1000}
+          autoRampDuration={0.6}
+          className="w-full h-full"
+        />
+      </div>
+      
+      {/* Navigation */}
+      <Navigation variant="glass" />
+      
+      {/* Main Content */}
+      <div className="relative z-10 p-6 min-h-screen">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-3xl font-bold text-White-900">Dashboard</h1>
+        <h1 className="text-3xl font-bold text-white drop-shadow-lg">Dashboard</h1>
         <div className="flex items-center gap-3">
           {/* User Data Modal Button */}
           {(isAuthenticated || isConnected) && (
@@ -394,13 +596,13 @@ export default function DashboardPage() {
               My Profile
             </Button>
           )}
-          <button
-            onClick={() => setShowForm(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
-          >
-            Add Referral
-          </button>
-        </div>
+        <button
+          onClick={() => setShowForm(true)}
+            className="px-4 py-2 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 backdrop-blur-sm text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 border border-white/20"
+        >
+          Add Referral
+        </button>
+      </div>
       </div>
 
       {/* Wallet & User Info Section */}
@@ -413,19 +615,19 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Wallet Info Card */}
             {isConnected && address && (
-              <Card className="border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-indigo-50">
+              <Card className="group border-2 border-white/30 bg-white/20 backdrop-blur-md hover:bg-white/30 hover:border-white/50 hover:shadow-xl hover:shadow-blue-500/20 transition-all duration-300">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <Wallet className="h-5 w-5 text-blue-600" />
+                  <CardTitle className="flex items-center gap-2 text-lg text-slate-900 group-hover:text-black transition-colors duration-300">
+                    <Wallet className="h-5 w-5 text-blue-600 group-hover:text-blue-700 transition-colors duration-300" />
                     Wallet Connected
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Wallet Address</p>
+                      <p className="text-sm text-slate-700 group-hover:text-slate-800 mb-1 transition-colors duration-300">Wallet Address</p>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm bg-white px-3 py-1 rounded border flex-1 font-mono">
+                        <code className="text-sm bg-white/80 backdrop-blur-sm px-3 py-1 rounded border border-white/30 flex-1 font-mono text-black">
                           {address.slice(0, 6)}...{address.slice(-4)}
                         </code>
                         <Button
@@ -449,19 +651,19 @@ export default function DashboardPage() {
 
             {/* User Info Card */}
             {isAuthenticated && user && (
-              <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-emerald-50">
+              <Card className="group border-2 border-white/30 bg-white/20 backdrop-blur-md hover:bg-white/30 hover:border-white/50 hover:shadow-xl hover:shadow-green-500/20 transition-all duration-300">
                 <CardHeader className="pb-3">
-                  <CardTitle className="flex items-center gap-2 text-lg">
-                    <User className="h-5 w-5 text-green-600" />
+                  <CardTitle className="flex items-center gap-2 text-lg text-slate-900 group-hover:text-black transition-colors duration-300">
+                    <User className="h-5 w-5 text-green-600 group-hover:text-green-700 transition-colors duration-300" />
                     User Profile
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3">
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Phone Number</p>
+                      <p className="text-sm text-slate-700 group-hover:text-slate-800 mb-1 transition-colors duration-300">Phone Number</p>
                       <div className="flex items-center gap-2">
-                        <code className="text-sm bg-white px-3 py-1 rounded border flex-1 font-mono">
+                        <code className="text-sm bg-white/80 backdrop-blur-sm px-3 py-1 rounded border border-white/30 flex-1 font-mono text-black">
                           {user.phoneE164}
                         </code>
                         <Button
@@ -475,8 +677,8 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-600 mb-1">Phone Hash</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded border font-mono block">
+                      <p className="text-sm text-slate-700 group-hover:text-slate-800 mb-1 transition-colors duration-300">Phone Hash</p>
+                      <code className="text-xs bg-white/80 backdrop-blur-sm px-2 py-1 rounded border border-white/30 font-mono block text-black">
                         {user.phoneHash?.slice(0, 10)}...
                       </code>
                     </div>
@@ -498,13 +700,13 @@ export default function DashboardPage() {
         <DashboardCard title="Total Rewards" value="150 Points" icon={Gift} className="bg-green-50" />
       </div>
 
-      <div className="bg-white rounded-xl p-6 shadow-md">
-        <h2 className="text-xl text-black font-semibold mb-4">My Referrals</h2>
+      <div className="rounded-xl p-6 transition-all duration-300">
+        <h2 className="text-xl text-white font-semibold mb-4 drop-shadow-lg">My Referrals</h2>
         
         <div className="flex justify-between items-center mb-4">
           <button
             onClick={() => setShowSearchModal(true)}
-            className="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+            className="px-4 py-2 bg-gradient-to-r from-indigo-500/80 to-purple-600/80 backdrop-blur-sm text-white rounded-lg hover:from-indigo-600 hover:to-purple-700 hover:shadow-lg hover:shadow-purple-500/30 transition-all duration-300 border border-white/20"
           >
             Search Referrals
           </button>
@@ -539,6 +741,10 @@ export default function DashboardPage() {
           onClose={() => setShowUserModal(false)} 
         />
       )}
+
+      {/* Footer */}
+      <Footer variant="glass" />
+      </div>
     </div>
   );
 }

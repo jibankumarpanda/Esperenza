@@ -9,8 +9,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useAccount } from "wagmi";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Shield, Phone, Wallet, User } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useState, useEffect } from "react";
+import GridDistortion from "@/components/ui/GridDistortion";
+import Footer from "@/components/layout/Footer";
+import Navigation from "@/components/layout/Navigation";
 
 export default function Home() {
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
@@ -33,76 +36,64 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="min-h-screen bg-white text-slate-900 font-sans">
-      {/* Navigation */}
-      <nav className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center gap-2">
-              <div className="p-2 bg-blue-100 rounded-full">
-                <Phone className="h-6 w-6 text-blue-600" />
-              </div>
-              <span className="text-xl font-bold text-gray-900">Esperenza</span>
-            </div>
-            <div className="flex items-center gap-4">
-              {isAuthenticated ? (
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg">
-                    <User className="h-4 w-4 text-green-600" />
-                    <span className="text-sm text-green-700">
-                      {user?.phoneE164?.slice(0, 6)}...
-                    </span>
-                  </div>
-                  <Link href="/dashboard">
-                    <Button>Dashboard</Button>
-                  </Link>
-                </div>
-              ) : (
-                <>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsLoginModalOpen(true)}
-                  >
-                    Login
-                  </Button>
-                  <Link href="/dashboard">
-                    <Button>Dashboard</Button>
-                  </Link>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </nav>
+    <main className="min-h-screen relative text-white font-sans overflow-hidden">
+      {/* Animated Grid Distortion Background */}
+      <div className="fixed inset-0 z-0">
+        <GridDistortion
+          grid={25}
+          mouse={0.2}
+          strength={0.3}
+          relaxation={0.92}
+          imageSrc="/gradient-bg.svg"
+          className="w-full h-full"
+        />
+      </div>
 
-      <Hero />
-      <div className="bg-slate-50">
+      {/* Content Layer */}
+      <div className="relative z-10">
+        {/* Navigation */}
+        <Navigation 
+          variant="glass" 
+          onLoginClick={() => setIsLoginModalOpen(true)}
+        />
+
+      <div className="relative">
+        <Hero />
+      </div>
+      <div className="bg-white/5 backdrop-blur-xl border-y border-white/10 shadow-2xl">
         <Features />
       </div>
-      <Impact />
-      <Marquee3D/>
+      <div className="relative">
+        <Impact />
+      </div>
+      <div className="bg-white/3 backdrop-blur-lg border-y border-white/5">
+        <Marquee3D/>
+      </div>
       
       {/* CTA Section */}
-      <section className="py-16 bg-gradient-to-r from-blue-600 to-purple-600">
+      <section className="py-16 bg-white/5 backdrop-blur-xl border-t border-white/10 shadow-2xl">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold text-white mb-4">
+          <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">
             Ready to Get Started?
           </h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-white/90 mb-8 drop-shadow-md">
             Connect your wallet and register your phone number to start using EcoPay
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              variant="secondary" 
-              className="w-full sm:w-auto"
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-500/60 to-pink-500/60 backdrop-blur-lg border border-white/20 text-white hover:from-purple-500/80 hover:to-pink-500/80 hover:shadow-2xl hover:shadow-purple-500/40 transition-all duration-300"
               onClick={() => setIsLoginModalOpen(true)}
             >
               Get Started
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
             <Link href="/dashboard">
-              <Button size="lg" variant="outline" className="w-full sm:w-auto bg-transparent border-white text-white hover:bg-white hover:text-blue-600">
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="w-full sm:w-auto bg-white/10 backdrop-blur-lg border-white/20 text-white hover:bg-white/20 hover:shadow-2xl hover:shadow-white/30 transition-all duration-300"
+              >
                 View Dashboard
               </Button>
             </Link>
@@ -110,11 +101,15 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Footer */}
+      <Footer variant="glass" />
+
       {/* Login Modal */}
       <LoginModal 
         isOpen={isLoginModalOpen} 
         onClose={() => setIsLoginModalOpen(false)} 
       />
+      </div>
     </main>
   );
 }

@@ -195,7 +195,7 @@ export const Features = () => {
 					className="text-center mb-8"
 				>
 					<p className="text-black-900 mb-6">Trusted by leading organizations</p>
-					<Marquee pauseOnHover className="[--duration:20s]">
+					<Marquee pauseOnHover className="[--duration:20s] text-black">
 						{[
 							'Celo Foundation',
 							'Chainlink',

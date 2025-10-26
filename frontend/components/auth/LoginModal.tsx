@@ -1,7 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { useAccount } from 'wagmi';
-import { ConnectButton } from '@rainbow-me/rainbowkit';
+import { CustomConnectButton } from '@/components/ui/CustomConnectButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -216,8 +216,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Welcome to Esperenza</h2>
-                <p className="text-sm text-slate-600">Connect your wallet to continue</p>
+                <h2 className="text-xl font-bold text-black">Welcome to Esperenza</h2>
+                <p className="text-sm text-black">Connect your wallet to continue</p>
               </div>
             </div>
             <Button
@@ -260,8 +260,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 animate={{ opacity: 1, y: 0 }}
                 className="space-y-4"
               >
-                <div>
-                  <Label htmlFor="phone" className="text-sm font-medium text-slate-900">
+                <div className='text-black'>
+                  <Label htmlFor="phone" className="text-sm font-medium text-black">
                     Phone Number
                   </Label>
                   <Input
@@ -283,7 +283,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   className="w-full h-12 text-base font-medium"
                   size="lg"
                 >
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 text-black border border-black px-4 py-2 rounded-lg rounded-full">
                     Continue to Wallet
                     <Zap className="h-4 w-4" />
                   </div>
@@ -346,22 +346,15 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     <p className="text-sm text-slate-600 text-center">
                       Click the button below to connect your wallet
                     </p>
-                    <div className="flex justify-center">
-                      <div className="w-full max-w-xs">
-                        <div className="rainbowkit-connect-button-wrapper">
-                          <ConnectButton 
-                            chainStatus="icon"
-                            showBalance={false}
-                            accountStatus={{
-                              smallScreen: 'avatar',
-                              largeScreen: 'full',
-                            }}
-                            label="Connect Wallet"
-                            modalSize="compact"
-                          />
-                        </div>
-                      </div>
-                    </div>
+                            <div className="flex justify-center">
+                              <div className="w-full max-w-xs">
+                                <CustomConnectButton 
+                                  label="Connect Wallet"
+                                  size="lg"
+                                  className="w-full"
+                                />
+                              </div>
+                            </div>
                     
                     {/* Fallback instructions */}
                     <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -397,7 +390,7 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     <CheckCircle className="h-6 w-6 text-success" />
                   </div>
                   <h3 className="font-semibold text-slate-900 mb-1">Registration Complete!</h3>
-                  <p className="text-sm text-slate-600">
+                  <p className="text-sm text-black ">
                     Welcome to Esperenza! Redirecting to dashboard...
                   </p>
                 </div>

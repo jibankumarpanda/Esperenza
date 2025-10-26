@@ -4,13 +4,13 @@ import { getPrisma } from '@/app/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     console.log('🔗 Referral creation API called');
-    const { code, reward, userId, maxUsage } = await request.json();
-    console.log('📊 Referral data:', { code, reward, userId, maxUsage });
+    const { name, code, reward, userId, maxUsage, category, description } = await request.json();
+    console.log('📊 Referral data:', { name, code, reward, userId, maxUsage, category, description });
 
-    if (!code || !userId) {
+    if (!name || !code || !userId) {
       console.log('❌ Missing required fields');
       return NextResponse.json({ 
-        error: 'Code and user ID are required' 
+        error: 'Name, code and user ID are required' 
       }, { status: 400 });
     }
 
@@ -49,9 +49,12 @@ export async function POST(request: NextRequest) {
     try {
       referral = await prisma.referral.create({
         data: {
+          name: name,
           code,
           reward: reward || 'Standard reward',
           maxUsage: maxUsage || null,
+          category: category || 'general',
+          description: description || '',
           userId: parseInt(userId),
           isActive: true,
           usageCount: 0

@@ -21,6 +21,19 @@ export async function GET(request: NextRequest) {
       where: {
         userId: parseInt(userId)
       },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        reward: true,
+        description: true,
+        category: true,
+        maxUsage: true,
+        usageCount: true,
+        isActive: true,
+        createdAt: true,
+        updatedAt: true
+      },
       orderBy: {
         createdAt: 'desc'
       }
@@ -31,11 +44,14 @@ export async function GET(request: NextRequest) {
       success: true,
       referrals: referrals.map(referral => ({
         id: referral.id,
-        platform: referral.platform,
+        name: referral.name,
         code: referral.code,
         description: referral.description,
         reward: referral.reward,
-        uses: referral.uses,
+        category: referral.category,
+        maxUsage: referral.maxUsage,
+        usageCount: referral.usageCount,
+        isActive: referral.isActive,
         createdAt: referral.createdAt
       }))
     });

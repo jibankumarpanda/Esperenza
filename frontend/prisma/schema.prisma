@@ -24,6 +24,8 @@ model User {
   transactions       Transaction[]
   referrals          Referral[]
   usedReferrals      Referral[] @relation("UsedReferrals")
+  referralUsages     ReferralUsage[]
+  points             UserPoints[]
 }
 
 model Transaction {
@@ -45,6 +47,7 @@ model Transaction {
 
 model Referral {
   id          Int      @id @default(autoincrement())
+  name        String   @default("Unknown Service") // Service name like "Perplexity", "Comet", "Claude"
   code        String   @unique
   userId      Int
   usedBy      Int?     // User ID of who used this referral code
@@ -52,12 +55,41 @@ model Referral {
   usageCount  Int      @default(0)
   maxUsage    Int?     // Optional: limit how many times code can be used
   reward      String?  // Optional: reward amount or type
+  category    String   @default("general")
+  description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   // Relations
   user        User     @relation(fields: [userId], references: [id])
   usedByUser  User?    @relation("UsedReferrals", fields: [usedBy], references: [id])
+  usages      ReferralUsage[]
+  points      UserPoints[]
+}
+
+model ReferralUsage {
+  id         Int      @id @default(autoincrement())
+  referralId Int
+  userId     Int
+  usedAt     DateTime @default(now())
+  
+  // Relations
+  referral   Referral @relation(fields: [referralId], references: [id])
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model UserPoints {
+  id          Int      @id @default(autoincrement())
+  userId      Int
+  points      Int
+  source      String   // 'referral_usage', 'referral_created', etc.
+  description String?
+  referralId  Int?
+  createdAt   DateTime @default(now())
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id])
+  referral    Referral? @relation(fields: [referralId], references: [id])
 }
 
 

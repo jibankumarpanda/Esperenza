@@ -124,7 +124,7 @@ export function LoginPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="text-4xl font-bold text-slate-900 mb-3"
+            className="text-4xl font-bold text-black mb-3"
           >
             Welcome to Esperenza
           </motion.h1>
@@ -283,7 +283,7 @@ export function LoginPage() {
                   </motion.div>
                 ) : (
                   <div className="space-y-4">
-                    <p className="text-sm text-slate-700">
+                    <p className="text-sm text-black">
                       Connect your wallet to continue with Esperenza
                     </p>
                     <div className="flex justify-center">
@@ -328,7 +328,7 @@ export function LoginPage() {
                   </div>
                   Registration Complete!
                 </CardTitle>
-                <CardDescription className='text-slate-700'>
+                <CardDescription className='text-black'>
                   Welcome to Esperenza! Redirecting to dashboard...
                 </CardDescription>
               </CardHeader>
