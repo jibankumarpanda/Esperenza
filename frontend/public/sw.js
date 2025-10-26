@@ -1,18 +1,18 @@
-// Simple service worker to handle avatar requests
+// Simple service worker that doesn't interfere with API calls
 self.addEventListener('fetch', (event) => {
-  // Skip service worker for avatar requests to avoid conflicts
-  if (event.request.url.includes('avatar.vercel.sh') || 
-      event.request.url.includes('ui-avatars.com') ||
-      event.request.url.includes('images.unsplash.com')) {
-    event.respondWith(fetch(event.request));
-    return;
+  // Only handle requests for static assets, not API calls
+  if (event.request.url.includes('/api/')) {
+    return; // Let API calls pass through normally
   }
   
-  // For other requests, use network first strategy
-  event.respondWith(
-    fetch(event.request).catch(() => {
-      // If network fails, try to serve from cache
-      return caches.match(event.request);
-    })
-  );
+  // For other requests, use default behavior
+  event.respondWith(fetch(event.request));
+});
+
+self.addEventListener('install', (event) => {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
 });
