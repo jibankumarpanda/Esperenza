@@ -57,6 +57,9 @@ model Referral {
   reward      String?  // Optional: reward amount or type
   category    String   @default("general")
   description String?
+  // Blockchain fields
+  txHash      String?  // Transaction hash from blockchain creation
+  blockNumber BigInt?  // Block number when created
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
@@ -72,6 +75,9 @@ model ReferralUsage {
   referralId Int
   userId     Int
   usedAt     DateTime @default(now())
+  // Blockchain fields
+  txHash     String?  // Transaction hash from blockchain usage
+  blockNumber BigInt? // Block number when used
   
   // Relations
   referral   Referral @relation(fields: [referralId], references: [id])

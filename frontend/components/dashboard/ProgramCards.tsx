@@ -184,67 +184,68 @@ export function ProgramCards() {
   return (
     <div className="space-y-6">
       <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-slate-900 mb-4">Referral Programs</h2>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+        <h2 className="text-3xl font-bold text-white mb-4 drop-shadow-lg">Referral Programs</h2>
+        <p className="text-lg text-white/80 max-w-2xl mx-auto drop-shadow-lg">
           Discover amazing referral programs and earn rewards for sharing great services with your network.
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 text-white">
         {programCards.map((program, index) => (
-          <motion.div
+            <motion.div
             key={program.title}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: index * 0.1 }}
-          >
+            className='text-white'
+            >
             <Card className={`border-2 ${program.borderColor} hover:shadow-lg transition-all duration-300 hover:-translate-y-1`}>
               <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className={`p-3 ${program.bgColor} rounded-lg w-fit`}>
-                    <program.icon className={`h-6 w-6 ${program.color}`} />
-                  </div>
-                  {getStatusBadge(program.status)}
+              <div className="flex items-start justify-between">
+                <div className={`p-3 ${program.bgColor} rounded-lg w-fit`}>
+                <program.icon className={`h-6 w-6 ${program.color}`} />
                 </div>
-                <CardTitle className="text-lg font-semibold text-slate-900">
-                  {program.title}
-                </CardTitle>
-                <p className="text-sm text-slate-600">
-                  {program.description}
-                </p>
+                {getStatusBadge(program.status)}
+              </div>
+              <CardTitle className="text-lg font-semibold text-white">
+                {program.title}
+              </CardTitle>
+              <p className="text-sm text-white/70 drop-shadow-lg">
+                {program.description}
+              </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Category</span>
-                  <Badge variant="outline" className="text-xs">
-                    {program.category}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Reward</span>
-                  <span className={`font-semibold ${program.color}`}>
-                    {program.reward}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-slate-700">Participants</span>
-                  <span className="text-sm text-slate-600">
-                    {program.participants.toLocaleString()}
-                  </span>
-                </div>
-                
-                <Button 
-                  className="w-full" 
-                  variant="outline"
-                  disabled={program.status === 'coming-soon'}
-                >
-                  {program.status === 'coming-soon' ? 'Coming Soon' : 'View Details'}
-                </Button>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white/80 drop-shadow-lg">Category</span>
+                <Badge variant="outline" className="text-xs text-white/90 border-white/30 bg-white/10 backdrop-blur-sm">
+                  {program.category}
+                </Badge>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white/80 drop-shadow-lg">Reward</span>
+                <span className="font-semibold text-white drop-shadow-lg">
+                {program.reward}
+                </span>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-white/80 drop-shadow-lg">Participants</span>
+                <span className="text-sm text-white/70 drop-shadow-lg">
+                {program.participants.toLocaleString()}
+                </span>
+              </div>
+              
+              <Button 
+                className="w-full" 
+                variant="outline"
+                disabled={program.status === 'coming-soon'}
+              >
+                {program.status === 'coming-soon' ? 'Coming Soon' : 'View Details'}
+              </Button>
               </CardContent>
             </Card>
-          </motion.div>
+            </motion.div>
         ))}
       </div>
     </div>

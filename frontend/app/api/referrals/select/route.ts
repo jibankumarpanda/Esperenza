@@ -4,8 +4,8 @@ import { getPrisma } from '@/app/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     console.log('🎯 Referral selection API called');
-    const { referralId, userId } = await request.json();
-    console.log('📊 Selection data:', { referralId, userId });
+    const { referralId, userId, txHash, blockNumber } = await request.json();
+    console.log('📊 Selection data:', { referralId, userId, txHash, blockNumber });
 
     if (!referralId || !userId) {
       console.log('❌ Missing required fields');
@@ -65,7 +65,9 @@ export async function POST(request: NextRequest) {
       data: {
         referralId: parseInt(referralId),
         userId: parseInt(userId),
-        usedAt: new Date()
+        usedAt: new Date(),
+        txHash: txHash || null,
+        blockNumber: blockNumber ? BigInt(blockNumber) : null
       }
     });
 

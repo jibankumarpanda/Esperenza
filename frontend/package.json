@@ -16,6 +16,7 @@
     "db:test-referral": "node scripts/test-referral-db.js",
     "test:referral-system": "node scripts/test-referral-system.js",
     "test:contracts": "node scripts/test-smart-contracts.js",
+    "test:points": "node scripts/test-points-system.js",
     "fix:prisma": "node scripts/fix-prisma-permissions.js"
   },
   "dependencies": {

@@ -47,14 +47,7 @@ const Navigation: React.FC<NavigationProps> = ({
                     {user?.phoneE164?.slice(0, 6)}...
                   </span>
                 </div>
-                <Link href="/dashboard">
-                  <Button className={variant === 'glass' 
-                    ? 'bg-gradient-to-r from-purple-900 to-pink-500/10  border border-white/20 text-black hover:from-purple-500/30 hover:to-pink-500/30 hover:shadow-lg hover:shadow-purple-500/20'
-                    : 'bg-indigo-600 text-black hover:bg-indigo-700'
-                  }>
-                    Dashboard
-                  </Button>
-                </Link>
+                
               </div>
             ) : (
               <>

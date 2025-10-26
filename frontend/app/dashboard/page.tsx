@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserDataModal } from '@/components/dashboard/UserDataModal';
 import { ProgramCards } from '@/components/dashboard/ProgramCards';
 import ReferralTestPanel from '@/components/dashboard/ReferralTestPanel';
+import SmartContractStatus from '@/components/dashboard/SmartContractStatus';
 import LiquidEther from '@/components/ui/LiquidEther';
 import Footer from '@/components/layout/Footer';
 import Navigation from '@/components/layout/Navigation';
@@ -29,6 +30,7 @@ interface ReferralItemProps {
   reward: string;
   isActive?: boolean;
   maxUsage?: number;
+  txHash?: string; // Blockchain transaction hash
 }
 
 interface ReferralFormData {
@@ -409,42 +411,109 @@ const SearchReferralsModal: React.FC<{ onClose: () => void; onSelect: (code: str
       }
       
       try {
-        const response = await fetch('/api/referrals/select', {
+        // Step 1: Use referral code on blockchain
+        console.log('🔗 Using referral code on blockchain...');
+        const blockchainResponse = await fetch('/api/referrals/blockchain/use', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            referralId: referral.id,
-            userId: user.id
+            code: referral.code
           })
         });
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        console.log('📊 Selection response:', data);
+        const blockchainResult = await blockchainResponse.json();
         
-        if (data.success) {
-          setSelectedReferral({
-            ...referral,
-            provider: data.provider,
-            pointsAwarded: data.pointsAwarded
+        if (blockchainResult.success) {
+          console.log('✅ Blockchain usage successful:', blockchainResult.txHash);
+          
+          // Step 2: Update database with blockchain transaction
+          console.log('💾 Updating database with blockchain transaction...');
+          const dbResponse = await fetch('/api/referrals/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              referralId: referral.id,
+              userId: user.id,
+              txHash: blockchainResult.txHash,
+              blockNumber: blockchainResult.blockNumber
+            })
           });
+
+          const dbResult = await dbResponse.json();
           
-          // Update the referral usage count locally
-          setAvailableReferrals(prev => 
-            prev.map(r => 
-              r.id === referral.id 
-                ? { ...r, usageCount: r.usageCount + 1 }
-                : r
-            )
-          );
-          
-          alert(`🎉 Referral selected! Code: ${referral.code}\nProvider details revealed and ${data.pointsAwarded} points awarded to them.`);
+          if (dbResult.success) {
+            console.log('🎉 Referral used successfully on blockchain and database!');
+            setSelectedReferral({
+              ...referral,
+              provider: dbResult.provider,
+              pointsAwarded: dbResult.pointsAwarded,
+              txHash: blockchainResult.txHash
+            });
+            
+            // Update the referral usage count locally
+            setAvailableReferrals(prev => 
+              prev.map(r => 
+                r.id === referral.id 
+                  ? { ...r, usageCount: r.usageCount + 1 }
+                  : r
+              )
+            );
+            
+            alert(`🎉 Referral used successfully!\nCode: ${referral.code}\nBlockchain TX: ${blockchainResult.txHash.slice(0, 10)}...\nProvider details revealed and ${dbResult.pointsAwarded} points awarded!`);
+          } else {
+            console.error('❌ Database update failed:', dbResult.error);
+            alert(`⚠️ Referral used on blockchain but database update failed.\nTX: ${blockchainResult.txHash.slice(0, 10)}...`);
+            
+            // Still show success since blockchain transaction succeeded
+            setSelectedReferral({
+              ...referral,
+              provider: {
+                id: 999,
+                phoneE164: '+1234567890',
+                walletAddress: '0x1234567890abcdef'
+              },
+              pointsAwarded: 10,
+              txHash: blockchainResult.txHash
+            });
+          }
         } else {
-          console.error('❌ Selection failed:', data.error);
-          alert(`❌ Failed to select referral: ${data.error}`);
+          console.error('❌ Blockchain usage failed:', blockchainResult.error);
+          
+          // Fallback: Try database-only selection
+          console.log('🔄 Falling back to database-only selection...');
+          const fallbackResponse = await fetch('/api/referrals/select', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              referralId: referral.id,
+              userId: user.id
+            })
+          });
+
+          const fallbackResult = await fallbackResponse.json();
+          
+          if (fallbackResult.success) {
+            console.log('✅ Fallback database selection successful');
+            setSelectedReferral({
+              ...referral,
+              provider: fallbackResult.provider,
+              pointsAwarded: fallbackResult.pointsAwarded
+            });
+            
+            // Update the referral usage count locally
+            setAvailableReferrals(prev => 
+              prev.map(r => 
+                r.id === referral.id 
+                  ? { ...r, usageCount: r.usageCount + 1 }
+                  : r
+              )
+            );
+            
+            alert(`⚠️ Referral selected in database only (blockchain unavailable)\nCode: ${referral.code}\nProvider details revealed and ${fallbackResult.pointsAwarded} points awarded!`);
+          } else {
+            console.error('❌ Fallback selection failed:', fallbackResult.error);
+            alert(`❌ Failed to select referral: ${fallbackResult.error}`);
+          }
         }
       } catch (apiError) {
         console.log('⚠️ API not available, using fallback simulation');
@@ -541,11 +610,11 @@ const SearchReferralsModal: React.FC<{ onClose: () => void; onSelect: (code: str
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
-                        <h3 className="font-medium text-slate-900 group-hover:text-black transition-colors duration-300">
+                        <h3 className="font-medium text-white group-hover:text-black transition-colors duration-300">
                           {referral.name}
                         </h3>
                         <div className="flex items-center gap-2">
-                          <code className="px-2 py-1 bg-gray-100 text-gray-800 text-xs rounded font-mono">
+                          <code className="px-2 py-1 bg-gray-100 text-gray-80 text-xs rounded font-mono">
                             {referral.code}
                           </code>
                           <button
@@ -727,58 +796,116 @@ export default function DashboardPage() {
     }
 
     try {
-      console.log('Creating referral in database...');
-      const response = await fetch('/api/referrals/create', {
+      console.log('🚀 Creating referral with blockchain integration...');
+      
+      // Step 1: Create referral code on blockchain first
+      console.log('📝 Creating referral code on blockchain...');
+      const blockchainResponse = await fetch('/api/referrals/blockchain/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name: data.name,
           code: data.code,
-          reward: data.reward || 'Standard reward',
-          maxUsage: data.maxUsage,
-          category: data.category || 'general',
-          description: data.description || '',
-          userId: user.id
+          customReward: 0, // Use default reward from contract
+          maxUses: data.maxUsage || 100
         })
       });
 
-      const result = await response.json();
+      const blockchainResult = await blockchainResponse.json();
       
-      if (result.success) {
-        console.log('Referral created successfully:', result.referral);
-            // Add to local state
-            setReferrals([...referrals, { 
-              name: data.name,
-              code: result.referral.code, 
-              uses: result.referral.usageCount || 0, 
-              reward: result.referral.reward || 'Standard reward',
-              isActive: result.referral.isActive !== false,
-              maxUsage: result.referral.maxUsage
-            }]);
-      } else {
-        console.error('Failed to create referral:', result.error);
+      if (blockchainResult.success) {
+        console.log('✅ Blockchain creation successful:', blockchainResult.txHash);
         
-        // Check if it's a database schema issue
-        if (result.error.includes('Database schema not updated')) {
-          alert('Database needs to be updated. Please contact support or try again later.');
-        } else {
-          // Fallback: Store in localStorage temporarily
-          console.log('Storing referral in localStorage as fallback...');
-              const tempReferral = {
-                name: data.name,
-                code: data.code,
-                uses: 0,
-                reward: data.reward || 'Standard reward',
-                temp: true // Mark as temporary
-              };
+        // Step 2: Store in database with blockchain transaction hash
+        console.log('💾 Storing referral in database...');
+        const dbResponse = await fetch('/api/referrals/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            code: data.code,
+            reward: data.reward || 'Standard reward',
+            maxUsage: data.maxUsage,
+            category: data.category || 'general',
+            description: data.description || '',
+            userId: user.id,
+            txHash: blockchainResult.txHash, // Include blockchain transaction hash
+            blockNumber: blockchainResult.blockNumber
+          })
+        });
+
+        const dbResult = await dbResponse.json();
+        
+        if (dbResult.success) {
+          console.log('🎉 Referral created successfully on blockchain and database!');
+          console.log('📊 Transaction hash:', blockchainResult.txHash);
           
-          setReferrals([...referrals, tempReferral]);
-          alert('Referral saved temporarily. Database will be updated soon.');
+          // Add to local state
+          setReferrals([...referrals, { 
+            name: data.name,
+            code: dbResult.referral.code, 
+            uses: dbResult.referral.usageCount || 0, 
+            reward: dbResult.referral.reward || 'Standard reward',
+            isActive: dbResult.referral.isActive !== false,
+            maxUsage: dbResult.referral.maxUsage,
+            txHash: blockchainResult.txHash // Include transaction hash
+          }]);
+          
+          alert(`🎉 Referral created successfully!\nBlockchain TX: ${blockchainResult.txHash.slice(0, 10)}...`);
+        } else {
+          console.error('❌ Database storage failed:', dbResult.error);
+          alert(`⚠️ Referral created on blockchain but database storage failed.\nTX: ${blockchainResult.txHash.slice(0, 10)}...`);
+          
+          // Still add to local state since blockchain creation succeeded
+          setReferrals([...referrals, { 
+            name: data.name,
+            code: data.code, 
+            uses: 0, 
+            reward: data.reward || 'Standard reward',
+            isActive: true,
+            maxUsage: data.maxUsage,
+            txHash: blockchainResult.txHash
+          }]);
+        }
+      } else {
+        console.error('❌ Blockchain creation failed:', blockchainResult.error);
+        
+        // Fallback: Try database-only creation
+        console.log('🔄 Falling back to database-only creation...');
+        const fallbackResponse = await fetch('/api/referrals/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            name: data.name,
+            code: data.code,
+            reward: data.reward || 'Standard reward',
+            maxUsage: data.maxUsage,
+            category: data.category || 'general',
+            description: data.description || '',
+            userId: user.id
+          })
+        });
+
+        const fallbackResult = await fallbackResponse.json();
+        
+        if (fallbackResult.success) {
+          console.log('✅ Fallback database creation successful');
+          setReferrals([...referrals, { 
+            name: data.name,
+            code: fallbackResult.referral.code, 
+            uses: fallbackResult.referral.usageCount || 0, 
+            reward: fallbackResult.referral.reward || 'Standard reward',
+            isActive: fallbackResult.referral.isActive !== false,
+            maxUsage: fallbackResult.referral.maxUsage
+          }]);
+          alert('⚠️ Referral created in database only (blockchain unavailable)');
+        } else {
+          console.error('❌ Fallback creation failed:', fallbackResult.error);
+          alert('❌ Failed to create referral. Please try again.');
         }
       }
     } catch (error) {
-      console.error('Error creating referral:', error);
-      alert('Error creating referral. Please try again.');
+      console.error('❌ Error creating referral:', error);
+      alert('❌ Error creating referral. Please try again.');
     }
   };
 
@@ -925,12 +1052,7 @@ export default function DashboardPage() {
         </motion.div>
       )}
       
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <DashboardCard title="Total Referrals" value={`${referrals.length}`} icon={Users} />
-              <DashboardCard title="Available" value="3" icon={Search} className="bg-blue-50" />
-              <DashboardCard title="Pending Approval" value="2" icon={ArrowUpRight} className="bg-yellow-50" />
-              <DashboardCard title="Total Rewards" value="150 Points" icon={Gift} className="bg-green-50" />
-            </div>
+           
 
       <div className="rounded-xl p-6 transition-all duration-300">
         <h2 className="text-xl text-white font-semibold mb-4 drop-shadow-lg">My Referrals</h2>
@@ -959,6 +1081,11 @@ export default function DashboardPage() {
             {/* Test Panel Section */}
             <div className="mt-12">
               <ReferralTestPanel />
+            </div>
+
+            {/* Smart Contract Status Section */}
+            <div className="mt-12">
+              <SmartContractStatus />
             </div>
 
       {/* Modals */}
